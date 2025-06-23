@@ -2,6 +2,9 @@
 
 A powerful Chrome extension that automatically scrapes LinkedIn profiles and webpage content to generate 3 different LinkedIn connection note formats using AI (Groq API). Perfect for sales professionals, recruiters, and business developers who want to create personalized, feedback-focused connection requests.
 
+![image](https://github.com/user-attachments/assets/debf5153-9752-4a92-b3cc-2bdfa7338c35)
+![image](https://github.com/user-attachments/assets/def9640d-b7dd-4485-a3c3-1855a3011eae)
+
 ## 🎯 What This Extension Does
 
 This extension helps you create **personalized LinkedIn connection notes** that focus on seeking feedback and insights rather than pitching or selling. It's specifically designed for:
