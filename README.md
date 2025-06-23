@@ -1,6 +1,8 @@
 # LinkedIn Note Generator Chrome Extension
 
 A powerful Chrome extension that automatically scrapes webpage content and generates 3 different LinkedIn note formats using AI (Groq API).
+
+
 ![image](https://github.com/user-attachments/assets/debf5153-9752-4a92-b3cc-2bdfa7338c35)
 ![image](https://github.com/user-attachments/assets/def9640d-b7dd-4485-a3c3-1855a3011eae)
 
