@@ -39,48 +39,62 @@ async function generateLinkedInNotes(pageContent) {
         messages: [
           {
             role: "system",
-            content: `You are a LinkedIn outreach expert focused on seeking feedback and insights, NOT selling. Generate 3 different LinkedIn connection note formats based on the provided profile content.
+            content: `You are an expert LinkedIn outreach specialist focused on creating authentic, feedback-seeking connection requests. Your goal is to help users build genuine professional relationships by asking for insights and expertise rather than pitching or selling.
 
-            Context: We're building an AI tool that helps teams create internal tools and apps through simple prompts. We want to learn from experienced professionals to improve our tool.
+            CONTEXT: The user is building an AI tool that helps teams create internal tools and applications through simple prompts. They want to connect with experienced professionals to gather insights, validate their approach, and improve their product.
 
-            Follow this structure for each note (max 250 characters):
-            1. Hi [Name], (personalize with their actual role/company if mentioned)
-            2. Brief mention of what we're building (AI tool for internal tools/apps from prompts)
-            3. Connect it to their specific expertise/industry/role
-            4. Ask for their insights/feedback/help to improve our tool
-            5. Request a short discovery call (15-20 min)
-            format example Hi [Name],
-We’re building an AI tool that helps teams create internal tools and apps through simple prompts — especially useful for streamlining ops workflows.
-Given your experience in operations, your insights would be very helpful for us. Would you be open to a quick 15-min discovery call?
-            CRITICAL: 
-            - NEVER sell or pitch the tool
-            - Always ask for THEIR help, insights, or feedback
-            - Make it collaborative, not sales-focused
-            - Reference something specific from their profile/experience
-            - Keep it humble and learning-focused
-            strictly never exceed 250 characters for each note.
+            INSTRUCTIONS:
+            1. Generate 3 distinct LinkedIn connection note formats (max 250 characters each)
+            2. Each note should be personalized based on the profile content provided
+            3. Focus on SEEKING HELP and INSIGHTS, never on selling or pitching
+            4. Make the user appear humble and genuinely interested in learning
+            5. Reference specific aspects of the person's experience when possible
+            6. Always suggest a brief discovery call (15-20 minutes)
+
+            FORMAT REQUIREMENTS:
+            - Collaborative Feedback: Focus on asking for help to improve the tool
+            - Research & Insights: Emphasize learning from their industry experience  
+            - Expertise Validation: Seek validation of the approach from their expertise
+
+            TONE GUIDELINES:
+            - Humble and respectful
+            - Genuinely curious about their expertise
+            - Collaborative, not transactional
+            - Professional but approachable
+            - Specific to their background when possible
+
+            STRICT CHARACTER LIMIT: Each note must be under 250 characters including spaces.
+
             Return ONLY a valid JSON object with this exact format:
             {
-              "format1": "Collaborative feedback-seeking approach",
-              "format2": "Research/insights gathering approach", 
-              "format3": "Expertise validation approach"
+              "format1": "Collaborative feedback-seeking message",
+              "format2": "Research and insights gathering message", 
+              "format3": "Expertise validation message"
             }
-            
+
             Do not include any other text, explanations, or formatting outside the JSON.`
           },
           {
             role: "user",
-            content: `Generate 3 LinkedIn connection notes from this profile/page: ${pageContent.substring(0, 2000)}`
+            content: `Generate 3 personalized LinkedIn connection notes based on this profile/page content:
+
+${pageContent.substring(0, 2000)}
+
+Focus on their specific role, industry, and experience. Make each note feel personalized and authentic while staying under 250 characters each.`
           }
         ],
         model: "llama-3.3-70b-versatile",
         temperature: 0.7,
-        max_tokens: 800
+        max_tokens: 1000,
+        top_p: 0.9,
+        frequency_penalty: 0.1,
+        presence_penalty: 0.1
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`API request failed (${response.status}): ${errorText}`);
     }
 
     const data = await response.json();
@@ -90,13 +104,13 @@ Given your experience in operations, your insights would be very helpful for us.
       throw new Error('No content received from API');
     }
 
-    // Clean and parse JSON response
+    // Enhanced JSON parsing with better error handling
     let cleanContent = content.trim();
     
     // Remove any markdown code block formatting
     cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*/g, '');
     
-    // Remove any leading/trailing text that might not be JSON
+    // Find the JSON object boundaries
     const jsonStart = cleanContent.indexOf('{');
     const jsonEnd = cleanContent.lastIndexOf('}') + 1;
     
@@ -107,55 +121,130 @@ Given your experience in operations, your insights would be very helpful for us.
     try {
       const notes = JSON.parse(cleanContent);
       
-      // Validate that we have the expected format
+      // Validate that we have the expected format and content
       if (notes.format1 && notes.format2 && notes.format3) {
         return [
-          { type: "Collaborative Feedback", content: notes.format1 },
-          { type: "Research & Insights", content: notes.format2 },
-          { type: "Expertise Validation", content: notes.format3 }
+          { 
+            type: "🎯 Collaborative Feedback", 
+            content: validateAndCleanNote(notes.format1)
+          },
+          { 
+            type: "💬 Research & Insights", 
+            content: validateAndCleanNote(notes.format2)
+          },
+          { 
+            type: "⚡ Expertise Validation", 
+            content: validateAndCleanNote(notes.format3)
+          }
         ];
       } else {
-        throw new Error('Invalid response format from AI');
+        throw new Error('Invalid response format from AI - missing required formats');
       }
     } catch (parseError) {
       console.error('JSON parsing failed:', parseError);
-      console.log('Raw content:', content);
+      console.log('Raw AI response:', content);
       
-      // Enhanced fallback: try to extract meaningful content
-      const lines = content.split('\n').filter(line => 
-        line.trim() && 
-        !line.includes('{') && 
-        !line.includes('}') && 
-        !line.includes('"format') &&
-        line.length > 20
-      );
-      
-      if (lines.length >= 3) {
-        return [
-          { type: "Collaborative Feedback", content: lines[0].replace(/["""]/g, '').trim() },
-          { type: "Research & Insights", content: lines[1].replace(/["""]/g, '').trim() },
-          { type: "Expertise Validation", content: lines[2].replace(/["""]/g, '').trim() }
-        ];
-      } else {
-        // Last resort fallback with feedback-focused approach
-        return [
-          { 
-            type: "Collaborative Feedback", 
-            content: "Hi! We're building an AI tool that creates internal apps from prompts. Your operational expertise would be invaluable for our research. Would you be open to sharing insights in a quick 15-min call to help us improve?" 
-          },
-          { 
-            type: "Research & Insights", 
-            content: "Hi! Building an AI that turns workflow needs into instant tools. Your experience in ops efficiency would help us understand real user challenges. Could we chat for 15 minutes to gather your insights?" 
-          },
-          { 
-            type: "Expertise Validation", 
-            content: "Hi! Working on AI that builds internal tools from simple prompts. Given your expertise in operations, your feedback would be extremely helpful for our development. Quick 15-min discovery call?" 
-          }
-        ];
-      }
+      // Enhanced fallback with better extraction
+      return generateFallbackNotes(pageContent, content);
     }
   } catch (error) {
     console.error('Error generating notes:', error);
+    
+    // If it's an API error, provide more specific error message
+    if (error.message.includes('401')) {
+      throw new Error('Invalid API key. Please check your Groq API key and try again.');
+    } else if (error.message.includes('429')) {
+      throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+    } else if (error.message.includes('500')) {
+      throw new Error('Groq API server error. Please try again in a few moments.');
+    }
+    
     throw error;
   }
+}
+
+function validateAndCleanNote(note) {
+  if (!note || typeof note !== 'string') {
+    return "Hi! We're building an AI tool for workflow automation. Your expertise would be valuable for our research. Open to a quick 15-min call?";
+  }
+  
+  // Clean the note and ensure it's under 250 characters
+  let cleanNote = note.replace(/["""]/g, '"').trim();
+  
+  if (cleanNote.length > 250) {
+    cleanNote = cleanNote.substring(0, 247) + "...";
+  }
+  
+  return cleanNote;
+}
+
+function generateFallbackNotes(pageContent, aiResponse) {
+  // Try to extract any usable content from the AI response
+  const lines = aiResponse.split('\n').filter(line => 
+    line.trim() && 
+    !line.includes('{') && 
+    !line.includes('}') && 
+    !line.includes('"format') &&
+    line.length > 30 &&
+    line.length < 300
+  );
+  
+  // If we have enough extracted lines, use them
+  if (lines.length >= 3) {
+    return [
+      { type: "🎯 Collaborative Feedback", content: validateAndCleanNote(lines[0]) },
+      { type: "💬 Research & Insights", content: validateAndCleanNote(lines[1]) },
+      { type: "⚡ Expertise Validation", content: validateAndCleanNote(lines[2]) }
+    ];
+  }
+
+  // Last resort: High-quality fallback templates with personalization attempt
+  const hasTitle = pageContent.toLowerCase().includes('engineer') || 
+                  pageContent.toLowerCase().includes('manager') || 
+                  pageContent.toLowerCase().includes('director') ||
+                  pageContent.toLowerCase().includes('analyst') ||
+                  pageContent.toLowerCase().includes('developer');
+  
+  const industry = extractIndustry(pageContent);
+  const experienceLevel = extractExperienceLevel(pageContent);
+  
+  return [
+    { 
+      type: "🎯 Collaborative Feedback", 
+      content: `Hi! We're building an AI tool for internal apps from prompts. Your ${industry} expertise would be invaluable for our research. Would you be open to a 15-min discovery call?` 
+    },
+    { 
+      type: "💬 Research & Insights", 
+      content: `Hi! Building AI that turns workflow needs into tools. Your ${experienceLevel} experience would help us understand real user challenges. Quick 15-min chat to gather insights?` 
+    },
+    { 
+      type: "⚡ Expertise Validation", 
+      content: `Hi! Working on AI for internal tools from prompts. Given your background in ${industry}, your feedback would be extremely helpful. Quick discovery call?` 
+    }
+  ];
+}
+
+function extractIndustry(content) {
+  const industries = ['operations', 'engineering', 'marketing', 'sales', 'finance', 'product', 'design', 'data', 'consulting', 'healthcare', 'education', 'technology'];
+  const lowerContent = content.toLowerCase();
+  
+  for (const industry of industries) {
+    if (lowerContent.includes(industry)) {
+      return industry;
+    }
+  }
+  return 'professional';
+}
+
+function extractExperienceLevel(content) {
+  const lowerContent = content.toLowerCase();
+  
+  if (lowerContent.includes('senior') || lowerContent.includes('lead') || lowerContent.includes('principal')) {
+    return 'senior-level';
+  } else if (lowerContent.includes('director') || lowerContent.includes('vp') || lowerContent.includes('head of')) {
+    return 'leadership';
+  } else if (lowerContent.includes('manager') || lowerContent.includes('supervisor')) {
+    return 'management';
+  }
+  return 'extensive';
 } 
