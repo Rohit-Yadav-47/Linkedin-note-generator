@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Note Generator",
+  "version": "1.0",
+  "description": "Generate concise LinkedIn notes from webpage content using AI",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://api.groq.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Generate LinkedIn Notes"
+  },
+  "commands": {
+    "generate_notes": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Generate LinkedIn notes from current page"
+    }
+  }
+} 

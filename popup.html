@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 420px;
+      min-height: 600px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+      color: white;
+      line-height: 1.6;
+    }
+    
+    .container {
+      padding: 24px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: slideDown 0.4s ease-out;
+    }
+    
+    .header .logo {
+      width: 48px;
+      height: 48px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #fff, #e8f4fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .header p {
+      font-size: 14px;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    .api-key-section {
+      padding: 20px;
+    }
+    
+    .api-key-section label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+    
+    .input-group {
+      position: relative;
+    }
+    
+    .api-key-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+    
+    .api-key-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    }
+    
+    .api-key-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .page-info {
+      padding: 16px 20px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .page-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .page-url {
+      opacity: 0.7;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      word-break: break-all;
+    }
+    
+    .content-length, .content-status, .page-status {
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    
+    .generate-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #00a0dc, #0077b5);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0, 160, 220, 0.3);
+      font-family: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 160, 220, 0.4);
+    }
+    
+    .generate-btn:active {
+      transform: translateY(0);
+    }
+    
+    .generate-btn:disabled {
+      background: rgba(255, 255, 255, 0.2);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 32px 20px;
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      border-top: 3px solid #00a0dc;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    .loading-text {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+    
+    .loading-subtext {
+      font-size: 12px;
+      opacity: 0.7;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .notes-container {
+      display: none;
+      animation: slideUp 0.4s ease-out;
+    }
+    
+    .notes-title {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #e8f4fd;
+    }
+    
+    .note-option {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .note-option::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .note-option:hover::before {
+      left: 100%;
+    }
+    
+    .note-option:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    
+    .note-option:active {
+      transform: translateY(0);
+    }
+    
+    .note-type {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #00d4ff;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .note-content {
+      line-height: 1.5;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+    
+    .copy-hint {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 11px;
+      opacity: 0.6;
+      transition: opacity 0.3s ease;
+    }
+    
+    .note-option:hover .copy-hint {
+      opacity: 1;
+    }
+    
+    .copy-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    .error {
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.15), rgba(255, 107, 107, 0.1));
+      border: 1px solid rgba(220, 53, 69, 0.3);
+      color: #ffb3b3;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    .keyboard-hint {
+      text-align: center;
+      font-size: 11px;
+      opacity: 0.6;
+      margin-top: 16px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+    }
+    
+    .version-info {
+      text-align: center;
+      font-size: 10px;
+      opacity: 0.4;
+      margin-top: 12px;
+    }
+
+    .success-checkmark {
+      display: inline-block;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🔗</div>
+      <h1>LinkedIn Note Generator</h1>
+      <p>AI-powered notes from any webpage</p>
+    </div>
+
+    <div class="card api-key-section">
+      <label for="apiKey">🔑 Groq API Key</label>
+      <div class="input-group">
+        <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your Groq API key for AI generation">
+      </div>
+    </div>
+
+    <div class="card page-info" id="pageInfo">
+      <div class="page-status">📄 Loading page information...</div>
+    </div>
+
+    <button id="generateBtn" class="generate-btn">
+      ✨ Generate LinkedIn Notes
+    </button>
+
+    <div id="error" class="error"></div>
+
+    <div id="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Generating your LinkedIn notes...</div>
+      <div class="loading-subtext">AI is analyzing the page content</div>
+    </div>
+
+    <div id="notesContainer" class="notes-container">
+      <div class="notes-title">📝 Choose Your LinkedIn Note</div>
+      
+      <div id="note1" class="note-option">
+        <div class="copy-hint">Click to copy</div>
+        <div class="note-type"></div>
+        <div class="note-content"></div>
+      </div>
+      
+      <div id="note2" class="note-option">
+        <div class="copy-hint">Click to copy</div>
+        <div class="note-type"></div>
+        <div class="note-content"></div>
+      </div>
+      
+      <div id="note3" class="note-option">
+        <div class="copy-hint">Click to copy</div>
+        <div class="note-type"></div>
+        <div class="note-content"></div>
+      </div>
+    </div>
+
+    <div class="keyboard-hint">
+      💡 Pro tip: Use <strong>Ctrl+Shift+L</strong> to quickly open this extension
+    </div>
+
+    <div class="version-info">
+      LinkedIn Note Generator v1.0
+    </div>
+  </div>
+
+  <div id="copyNotification" class="copy-notification">
+    <span class="success-checkmark">✅</span>Copied to clipboard!
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html> 
